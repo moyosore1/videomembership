@@ -1,3 +1,4 @@
 app/unencrypted/
 app/__pycache__/
+app/users/__pycache__/
 .env
