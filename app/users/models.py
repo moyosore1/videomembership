@@ -4,7 +4,7 @@ from cassandra.cqlengine import columns
 
 from app.config import get_settings
 
-from . import validators
+from . import validators, security
 
 settings = get_settings()
 
@@ -21,6 +21,19 @@ class User(Model):
     def __repr__(self):
         return f"User (email={self.email})"
 
+    def set_password(self, password, commit=False):
+        hashed_password = security.generate_hash(password)
+        self.password = hashed_password
+        if commit:
+            self.save()
+        return True
+
+    def verify_password(self, password):
+        hashed_password = self.password
+        verified = False
+        verified, _ = security.verify_hash(hashed_password, password)
+        return verified
+
     @staticmethod
     def create_user(email, password=None):
         qs = User.objects.filter(email=email)
@@ -32,6 +45,6 @@ class User(Model):
             raise Exception("Invalid email!")
 
         user = User(email=email)
-        user.password = password
+        user.set_password(password)
         user.save()
         return user
