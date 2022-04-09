@@ -30,7 +30,6 @@ def on_startup():
 
 @main_app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
-
     context = {
         'abc': "moyosore"
     }
@@ -67,7 +66,8 @@ def signup_post_view(request: Request, email: str = Form(...), password: str = F
         "password2": password2
     }
     data, errors = valid_schema_data_or_error(raw_data, UserSignupSchema)
-
+    if len(errors) > 0:
+        return render(request,  "auth/register.html", {"data": data, "errors": errors}, status_code=400)
     return render(request, "auth/register.html", {"data": data, "errors": errors})
 
 
