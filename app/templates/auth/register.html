@@ -1,5 +1,13 @@
 {% extends 'base.html' %} {% block content %}
 <h1>Register</h1>
+<div>
+{% if errors %}
+    {% for error in errors %}
+        <li><b>{{ error.loc[0] }}</b>: {{error.msg}}</li>
+    {% endfor %} 
+{% endif %} 
+</div> 
+{{ data }}
 <form method="POST">
   <div>
     <label for="email">Email</label>

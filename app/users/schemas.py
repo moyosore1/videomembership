@@ -18,8 +18,12 @@ class UserSignupSchema(BaseModel):
     @validator("password2")
     def validate_passwords(cls, v, values, **kwargs):
         password = values.get('password')
-        print(v)
         password2 = v
         if password != password2:
             raise ValueError("Passwords do not match.")
         return v
+
+
+class UserSignInSchema(BaseModel):
+    email: EmailStr
+    password: SecretStr
