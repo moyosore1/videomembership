@@ -1,6 +1,7 @@
+from ast import For
 import pathlib
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from cassandra.cqlengine.management import sync_table
@@ -28,12 +29,36 @@ def on_startup():
 
 @main_app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
-    # will be json data
+
     context = {
         'request': request,
         'abc': "moyosore"
     }
     return templates.TemplateResponse("home.html", context)
+
+
+@main_app.get("/login", response_class=HTMLResponse)
+def login_get_view(request: Request):
+    return templates.TemplateResponse("auth/login.html", {"request": request})
+
+
+@main_app.post("/login", response_class=HTMLResponse)
+def login_post_view(request: Request, email: str = Form(...), password: str = Form(...)):
+    # need python-multipart to handle form data.
+    print(email, password)
+    return templates.TemplateResponse("auth/login.html", {"request": request})
+
+
+@main_app.get("/signup", response_class=HTMLResponse)
+def signup_get_view(request: Request):
+    return templates.TemplateResponse("auth/register.html", {"request": request})
+
+
+@main_app.post("/signup", response_class=HTMLResponse)
+def signup_post_view(request: Request, email: str = Form(...), password: str = Form(...), password2: str = Form(...)):
+    # need python-multipart to handle form data.
+    print(email, password)
+    return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
 @main_app.get("/users")
