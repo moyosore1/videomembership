@@ -16,6 +16,7 @@ def authenticate(email, password):
         user = User.objects.get(email=email)
     except Exception as e:
         user = None
+
     if not user.verify_password(password):
         return None
     return user

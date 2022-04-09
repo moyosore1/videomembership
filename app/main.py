@@ -1,16 +1,18 @@
 import json
 import pathlib
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from cassandra.cqlengine.management import sync_table
 
 
 from .utils import valid_schema_data_or_error
-from .shortcuts import render
+from .shortcuts import render, redirect
 from . import config, db
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
+from .users.decorators import login_required
+
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
@@ -38,23 +40,31 @@ def homepage(request: Request):
 
 @main_app.get("/login", response_class=HTMLResponse)
 def login_get_view(request: Request):
-    return render(request, "auth/login.html", {"request": request})
+    session_id = request.cookies.get("session_id") or None
+    return render(request, "auth/login.html", {"logged_in": session_id is not None})
 
 
 @main_app.post("/login", response_class=HTMLResponse)
 def login_post_view(request: Request, email: str = Form(...), password: str = Form(...)):
     # need python-multipart to handle form data.
+
     raw_data = {
         "email": email,
-        "password": password
+        "password": password,
     }
     data, errors = valid_schema_data_or_error(raw_data, UserSignInSchema)
-    return render(request, "auth/login.html", {"data": data, "errors": errors})
+    context = {
+        "data": data,
+        "errors": errors
+    }
+    if len(errors) > 0:
+        return render(request,  "auth/register.html", context, status_code=400)
+    return redirect("/", cookies=data)
 
 
 @main_app.get("/signup", response_class=HTMLResponse)
 def signup_get_view(request: Request):
-    return render("auth/register.html", {})
+    return render(request, "auth/register.html", {})
 
 
 @main_app.post("/signup", response_class=HTMLResponse)
@@ -68,7 +78,15 @@ def signup_post_view(request: Request, email: str = Form(...), password: str = F
     data, errors = valid_schema_data_or_error(raw_data, UserSignupSchema)
     if len(errors) > 0:
         return render(request,  "auth/register.html", {"data": data, "errors": errors}, status_code=400)
-    return render(request, "auth/register.html", {"data": data, "errors": errors})
+    return redirect("/login")
+
+
+@main_app.get("/account", response_class=HTMLResponse)
+@login_required
+def account_view(request: Request):
+    
+    context = {}
+    return render(request, "account/profile.html", context)
 
 
 @main_app.get("/users")
