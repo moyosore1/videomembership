@@ -6,9 +6,10 @@ from fastapi.responses import HTMLResponse
 from cassandra.cqlengine.management import sync_table
 
 
+from . import config, db
 from .utils import valid_schema_data_or_error
 from .shortcuts import render, redirect
-from . import config, db
+from .handlers import * # noqa
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
