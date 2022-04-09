@@ -3,12 +3,11 @@ import pathlib
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from cassandra.cqlengine.management import sync_table
-from pydantic.error_wrappers import ValidationError
-from app.utils import valid_schema_data_or_error
 
 
+from .utils import valid_schema_data_or_error
+from .shortcuts import render
 from . import config, db
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
@@ -18,7 +17,6 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # settings = config.get_settings()
 
 main_app = FastAPI()
-templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 DB_SESSION = None
 
 
@@ -34,15 +32,14 @@ def on_startup():
 def homepage(request: Request):
 
     context = {
-        'request': request,
         'abc': "moyosore"
     }
-    return templates.TemplateResponse("home.html", context)
+    return render(request, "home.html", context)
 
 
 @main_app.get("/login", response_class=HTMLResponse)
 def login_get_view(request: Request):
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return render(request, "auth/login.html", {"request": request})
 
 
 @main_app.post("/login", response_class=HTMLResponse)
@@ -53,12 +50,12 @@ def login_post_view(request: Request, email: str = Form(...), password: str = Fo
         "password": password
     }
     data, errors = valid_schema_data_or_error(raw_data, UserSignInSchema)
-    return templates.TemplateResponse("auth/login.html", {"request": request, "data": data, "errors": errors})
+    return render(request, "auth/login.html", {"data": data, "errors": errors})
 
 
 @main_app.get("/signup", response_class=HTMLResponse)
 def signup_get_view(request: Request):
-    return templates.TemplateResponse("auth/register.html", {"request": request})
+    return render("auth/register.html", {})
 
 
 @main_app.post("/signup", response_class=HTMLResponse)
@@ -71,7 +68,7 @@ def signup_post_view(request: Request, email: str = Form(...), password: str = F
     }
     data, errors = valid_schema_data_or_error(raw_data, UserSignupSchema)
 
-    return templates.TemplateResponse("auth/register.html", {"request": request, "data": data, "errors": errors})
+    return render(request, "auth/register.html", {"data": data, "errors": errors})
 
 
 @main_app.get("/users")
