@@ -15,6 +15,7 @@ from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
 from .users.backends import JWTCookieBackend
+from .video.models import Video
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -32,7 +33,7 @@ def on_startup():
     global DB_SESSION
     DB_SESSION = db.get_session()
     sync_table(User)
-
+    sync_table(Video)
 
 @main_app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):

@@ -48,3 +48,17 @@ class User(Model):
         user.set_password(password)
         user.save()
         return user
+
+    @staticmethod
+    def check_exists(user_id):
+        qs = User.objects.filter(user_id=user_id).allow_filtering()
+        return qs.count() != 0
+
+    @staticmethod
+    def by_user_id(user_id=None):
+        if user_id is None:
+            return None
+        qs = User.objects.filter(user_id=user_id).allow_filtering()
+        if qs.count() != 1:
+            return None
+        return qs.first()
