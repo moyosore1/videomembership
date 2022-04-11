@@ -29,6 +29,12 @@ class VideoSchema(BaseModel):
         video = None
         try:
             video = Video.add_video(url, user_id=user_id)
+        except InvalidURLException:
+            raise ValueError("Not a valid URL")
+        except VideoAlreadyAddedException:
+            raise ValueError("You have already added said video")
+        except InvalidUserIdException:
+            raise ValueError("Invalid user.")
         except:
             raise ValueError("There is a problem, please try again")
         
@@ -37,4 +43,4 @@ class VideoSchema(BaseModel):
         
         if not isinstance(video, Video):
             raise ValueError("There is a problem, please try again")
-        return video.dict()
+        return video.as_data()

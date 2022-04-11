@@ -27,7 +27,7 @@ class Video(Model):
         return f"Video (host={self.host_id})"
 
     def as_data(self):
-        return {"youtube_id":self.host_id}
+        return {f"{self.host_service}_id":self.host_id}
 
     @staticmethod
     def add_video(url, user_id=None):
