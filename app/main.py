@@ -4,7 +4,8 @@ import pathlib
 from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from cassandra.cqlengine.management import sync_table
-
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.authentication import requires
 
 from . import config, db
 from .utils import valid_schema_data_or_error
@@ -13,6 +14,7 @@ from .handlers import * # noqa
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
+from .users.backends import JWTCookieBackend
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -20,6 +22,7 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # settings = config.get_settings()
 
 main_app = FastAPI()
+main_app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
 DB_SESSION = None
 
 
@@ -33,6 +36,8 @@ def on_startup():
 
 @main_app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
+    if request.user.is_authenticated:
+        return render(request, 'account/dashboard.html', {}, status_code=200)
     context = {
         'abc': "moyosore"
     }
@@ -40,6 +45,7 @@ def homepage(request: Request):
 
 
 @main_app.get("/login", response_class=HTMLResponse)
+# @requires(['anon'])
 def login_get_view(request: Request):
     session_id = request.cookies.get("session_id") or None
     return render(request, "auth/login.html", {"logged_in": session_id is not None})
