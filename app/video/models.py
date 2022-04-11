@@ -4,8 +4,10 @@ from cassandra.cqlengine import columns
 
 from app.config import get_settings
 from app.users.models import User
+from app.users.exceptions import InvalidUserIdException
 
 from .extractors import extract_video_id
+from .exceptions import InvalidURLException, VideoAlreadyAddedException
 
 settings = get_settings()
 
@@ -24,15 +26,18 @@ class Video(Model):
     def __repr__(self):
         return f"Video (host={self.host_id})"
 
+    def as_data(self):
+        return {"youtube_id":self.host_id}
+
     @staticmethod
     def add_video(url, user_id=None):
         host_id = extract_video_id(url)
         if host_id is None:
-            raise Exception("Invalid url")
-        user_id = User.check_exists(user_id)
-        if user_id is None:
-            raise Exception("Invalid user id.")
-        q = Video.objects.filter(host_id=host_id, user_id=user_id)
+            raise InvalidURLException("Invalid url")
+        user_exists = User.check_exists(user_id)
+        if user_exists is None:
+            raise InvalidUserIdException("Invalid user id.")
+        q = Video.objects.allow_filtering().filter(host_id=host_id, user_id=user_id)
         if q.count() != 0:
-            raise Exception("Video has been added by you")
+            raise VideoAlreadyAddedException("Video has been added by you")
         return Video.create(host_id=host_id, user_id=user_id, url=url)

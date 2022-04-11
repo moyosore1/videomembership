@@ -16,14 +16,16 @@ from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
 from .users.backends import JWTCookieBackend
 from .video.models import Video
+from .video.routers import router as video_router
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
-TEMPLATE_DIR = BASE_DIR / "templates"
+
 # settings = config.get_settings()
 
 main_app = FastAPI()
 main_app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
+main_app.include_router(video_router)
 DB_SESSION = None
 
 
