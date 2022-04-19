@@ -10,13 +10,14 @@ from starlette.authentication import requires
 from . import config, db
 from .utils import valid_schema_data_or_error
 from .shortcuts import render, redirect
-from .handlers import * # noqa
+from .handlers import *  # noqa
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
 from .users.backends import JWTCookieBackend
 from .video.models import Video
 from .video.routers import router as video_router
+from .watch.models import WatchEvent
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -36,6 +37,8 @@ def on_startup():
     DB_SESSION = db.get_session()
     sync_table(User)
     sync_table(Video)
+    sync_table(WatchEvent)
+
 
 @main_app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
@@ -94,7 +97,7 @@ def signup_post_view(request: Request, email: str = Form(...), password: str = F
 @main_app.get("/account", response_class=HTMLResponse)
 @login_required
 def account_view(request: Request):
-    
+
     context = {}
     return render(request, "account/profile.html", context)
 
@@ -103,3 +106,11 @@ def account_view(request: Request):
 def users_list():
     queryset = User.objects.all().limit(10)
     return list(queryset)
+
+
+@main_app.post("/watch-event")
+def watch_event_view(request: Request, data: dict):
+    if request.user.is_authenticated:
+        WatchEvent.objects.create(host_id=data.get("videoId"), user_id=request.user.username,
+                                  start_time=0, duration=500, end_time=data.get('currentTime'), complete=False)
+    return {"working": True}

@@ -87,6 +87,21 @@
         }
         timeSinceLastSaved = 0;
         console.log('saving...', data)
+        var reqOptions = {
+            method: "POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify(data)
+        }
+        fetch("watch-event", reqOptions)
+        .then(response => response.json())
+        .then(data=>{
+            
+        })
+        .catch(err => {
+            
+        })
     }
 
 
