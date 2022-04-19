@@ -1,4 +1,3 @@
-from importlib.resources import path
 import uuid
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine import columns
@@ -6,6 +5,7 @@ from cassandra.cqlengine import columns
 from app.config import get_settings
 from app.users.models import User
 from app.users.exceptions import InvalidUserIdException
+from app.shortcuts import templates
 
 from .extractors import extract_video_id
 from .exceptions import InvalidURLException, VideoAlreadyAddedException
@@ -31,6 +31,8 @@ class Video(Model):
     def as_data(self):
         return {f"{self.host_service}_id":self.host_id, "path":self.path}
 
+    
+
     @staticmethod
     def add_video(url, user_id=None, **kwargs):
         host_id = extract_video_id(url)
@@ -39,7 +41,7 @@ class Video(Model):
         user_exists = User.check_exists(user_id)
         if user_exists is None:
             raise InvalidUserIdException("Invalid user id.")
-        q = Video.objects.allow_filtering().filter(host_id=host_id, user_id=user_id)
+        q = Video.objects.allow_filtering().filter(host_id=host_id)
         if q.count() != 0:
             raise VideoAlreadyAddedException("Video has been added by you")
         return Video.create(host_id=host_id, user_id=user_id, url=url, **kwargs)
