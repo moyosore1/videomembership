@@ -22,7 +22,7 @@ def authenticate(email, password):
     return user
 
 
-def login(user, expires=30):
+def login(user, expires=settings.session_duration):
 
     data = {
         "user_id": f"{user.user_id}",

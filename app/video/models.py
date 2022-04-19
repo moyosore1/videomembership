@@ -1,3 +1,4 @@
+from importlib.resources import path
 import uuid
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine import columns
@@ -27,7 +28,7 @@ class Video(Model):
         return f"Video (host={self.host_id})"
 
     def as_data(self):
-        return {f"{self.host_service}_id":self.host_id}
+        return {f"{self.host_service}_id":self.host_id, "path":self.path}
 
     @staticmethod
     def add_video(url, user_id=None):
@@ -41,3 +42,7 @@ class Video(Model):
         if q.count() != 0:
             raise VideoAlreadyAddedException("Video has been added by you")
         return Video.create(host_id=host_id, user_id=user_id, url=url)
+
+    @property
+    def get_path(self):
+        return f"/videos/{self.host_id}"
