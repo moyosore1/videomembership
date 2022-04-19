@@ -57,3 +57,5 @@ def video_detail_view(request: Request, host_id: str):
         "video":video
     }
     return render(request, 'videos/list.html', context)
+
+
