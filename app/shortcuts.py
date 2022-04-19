@@ -1,6 +1,7 @@
-from distutils.command.config import config
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 
 
 from app.config import get_settings
@@ -31,3 +32,12 @@ def render(request, template_name, context={}, status_code: int = 200, cookies: 
         for k, v in cookies.items():
             response.set_cookie(key=k, value=v, httponly=True)
     return response
+
+
+def get_object_or_404(KlassName, **kwargs):
+    obj = None
+    try:
+        obj = KlassName.objects.get(**kwargs)
+    except:
+        raise StarletteHTTPException(status_code=404)
+    return obj

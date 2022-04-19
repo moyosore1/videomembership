@@ -18,6 +18,7 @@ class Video(Model):
     host_id = columns.Text(primary_key=True)
     db_id = columns.UUID(primary_key=True, default=uuid.uuid1)
     host_service = columns.Text(default='youtube')
+    title = columns.Text()
     url = columns.Text()
     user_id = columns.UUID()
 
@@ -31,7 +32,7 @@ class Video(Model):
         return {f"{self.host_service}_id":self.host_id, "path":self.path}
 
     @staticmethod
-    def add_video(url, user_id=None):
+    def add_video(url, user_id=None, **kwargs):
         host_id = extract_video_id(url)
         if host_id is None:
             raise InvalidURLException("Invalid url")
@@ -41,7 +42,8 @@ class Video(Model):
         q = Video.objects.allow_filtering().filter(host_id=host_id, user_id=user_id)
         if q.count() != 0:
             raise VideoAlreadyAddedException("Video has been added by you")
-        return Video.create(host_id=host_id, user_id=user_id, url=url)
+        return Video.create(host_id=host_id, user_id=user_id, url=url, **kwargs)
+
 
     @property
     def get_path(self):

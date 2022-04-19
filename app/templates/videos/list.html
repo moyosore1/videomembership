@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% for video in videos%}
+    <li>
+        <a href="{{object.path}}">
+            {% if not object.title %} {{video.host_id}}</li>{% else %}{{video.title}}
+            {% endif %}
+        </a>
+    </li>
+    {% endfor %}
+{% endblock content %}
