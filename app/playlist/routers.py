@@ -23,7 +23,7 @@ router = APIRouter(
 @router.get("/create", response_class=HTMLResponse)
 @login_required
 def playlist_create_view(request: Request):
-    return render(request, 'playlists/create.html', {})
+    return render(request, 'playlist/create.html', {})
 
 
 @router.post("/create", response_class=HTMLResponse)
@@ -40,7 +40,7 @@ def playlist_create_post(request: Request, title: str = Form(...)):
         "errors": errors
     }
     if len(errors) > 0:
-        return render(request, "playlists/create.html", context, status_code=400)
+        return render(request, "playlist/create.html", context, status_code=400)
     obj = Playlist.objects.create(**data)
     redirect_path = obj.path or "/playlists/create"
     return redirect(redirect_path)
@@ -52,7 +52,7 @@ def playlist_list_view(request: Request):
     context = {
         "playlists": qs
     }
-    return render(request, 'playlists/list.html', context)
+    return render(request, 'playlist/list.html', context)
 
 
 @router.get("/detail/{db_id}", response_class=HTMLResponse)
@@ -66,7 +66,7 @@ def playlist_detail_view(request: Request, db_id: uuid.UUID):
         "playlist": playlist,
         "videos": playlist.get_videos(),
     }
-    return render(request, 'playlists/list.html', context)
+    return render(request, 'playlist/list.html', context)
 
 
 @router.get("/{db_id}/add", response_class=HTMLResponse)
@@ -90,12 +90,13 @@ def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depe
     }
 
     data, errors = utils.valid_schema_data_or_error(raw_data, VideoSchema)
-    redirect_path = data.get('path') or "/videos/create"
+    redirect_path = data.get('path') or f"/playlists/detail/{db_id}"
     context = {
         "data": data,
         "errors": errors,
         "url": url,
-        "title": title
+        "title": title,
+        "db_id":db_id
     }
 
     if not is_htmx:
