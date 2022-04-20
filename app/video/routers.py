@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse
 
 
@@ -15,15 +15,22 @@ router = APIRouter(
 )
 
 
+
+def is_htmx(request:Request):
+    return request.headers.get("hx-request") == 'true'
+
 @router.get("/create", response_class=HTMLResponse)
 @login_required
-def video_create_view(request: Request):
+def video_create_view(request: Request, is_htmx=Depends(is_htmx)):
+    
+    if is_htmx:
+        return render(request, "videos/htmx/create.html")
     return render(request, 'videos/create.html', {})
 
 
 @router.post("/create", response_class=HTMLResponse)
 @login_required
-def video_create_post(request: Request, title: str =Form(...),  url: str = Form(...)):
+def video_create_post(request: Request, is_htmx=Depends(is_htmx), title: str = Form(...),  url: str = Form(...)):
     raw_data = {
         "title": title,
         "url": url,
@@ -31,6 +38,12 @@ def video_create_post(request: Request, title: str =Form(...),  url: str = Form(
     }
 
     data, errors = utils.valid_schema_data_or_error(raw_data, VideoSchema)
+    redirect_path = data.get('path') or "/videos/create"
+    if is_htmx:
+        if len(errors) > 0:
+            return render(request, "videos/htmx/create.html", context)
+        context = {"path":redirect_path, "title":data.get('title')}
+        return render(request, "videos/htmx/link.html", context)
     context = {
         "data":data,
         "errors":errors,
@@ -38,7 +51,6 @@ def video_create_post(request: Request, title: str =Form(...),  url: str = Form(
     }
     if len(errors) > 0:
         return render(request, "videos/create.html", context, status_code=400)
-    redirect_path = data.get('path') or "/videos/create"
     return redirect(redirect_path)
 
 @router.get("/", response_class=HTMLResponse)

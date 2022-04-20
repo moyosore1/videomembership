@@ -29,7 +29,7 @@ class Video(Model):
         return f"Video (host={self.host_id})"
 
     def as_data(self):
-        return {f"{self.host_service}_id":self.host_id, "path":self.path}
+        return {f"{self.host_service}_id":self.host_id, "path":self.path, "title":self.title}
 
     
 
