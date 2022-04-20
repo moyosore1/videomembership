@@ -4,8 +4,10 @@ from typing import Optional
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse
 
+from starlette.exceptions import HTTPException
 
-from app.shortcuts import redirect, render, get_object_or_404
+from app.shortcuts import (is_htmx, redirect, render,
+                           get_object_or_404, is_htmx)
 from app.users.decorators import login_required
 from app import utils
 from app.video.schemas import VideoSchema
@@ -16,11 +18,6 @@ from .models import Playlist
 router = APIRouter(
     prefix="/playlists"
 )
-
-
-
-def is_htmx(request: Request):
-    return request.headers.get("hx-request") == 'true'
 
 
 @router.get("/create", response_class=HTMLResponse)
@@ -59,12 +56,12 @@ def playlist_list_view(request: Request):
 
 
 @router.get("/detail/{db_id}", response_class=HTMLResponse)
-def playlist_detail_view(request: Request, db_id: str):
+def playlist_detail_view(request: Request, db_id: uuid.UUID):
     playlist = get_object_or_404(Playlist, db_id=db_id)
-    
+
     if request.user.is_authenticated:
         user_id = request.user.username
-        
+
     context = {
         "playlist": playlist,
         "videos": playlist.get_videos(),
@@ -74,16 +71,18 @@ def playlist_detail_view(request: Request, db_id: str):
 
 @router.get("/{db_id}/add", response_class=HTMLResponse)
 @login_required
-def video_create_view(request: Request, is_htmx=Depends(is_htmx), playlist_id: Optional[uuid.UUID] = None):
-
-    if is_htmx:
-        return render(request, "videos/htmx/create.html")
-    return render(request, 'videos/create.html', {})
+def playlist_video_create_view(request: Request, db_id: uuid.UUID, is_htmx=Depends(is_htmx)):
+    context = {
+        "db_id":db_id
+    }
+    if not is_htmx:
+        raise HTTPException(status_code=400)
+    return render(request, 'playlist/htmx/add.html', context)
 
 
 @router.post("/{db_id}/add", response_class=HTMLResponse)
 @login_required
-def video_create_post(request: Request, is_htmx=Depends(is_htmx), title: str = Form(...),  url: str = Form(...)):
+def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depends(is_htmx), title: str = Form(...),  url: str = Form(...)):
     raw_data = {
         "title": title,
         "url": url,
@@ -99,12 +98,9 @@ def video_create_post(request: Request, is_htmx=Depends(is_htmx), title: str = F
         "title": title
     }
 
-    if is_htmx:
-        if len(errors) > 0:
-            return render(request, "videos/htmx/create.html", context)
-        context = {"path": redirect_path, "title": data.get('title')}
-        return render(request, "videos/htmx/link.html", context)
-
+    if not is_htmx:
+        raise HTTPException(status_code=400)
     if len(errors) > 0:
-        return render(request, "videos/create.html", context, status_code=400)
-    return redirect(redirect_path)
+        return render(request, "playlist/htmx/add.html", context)
+    context = {"path": redirect_path, "title": data.get('title')}
+    return render(request, "videos/htmx/link.html", context)

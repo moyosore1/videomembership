@@ -1,3 +1,4 @@
+from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -9,6 +10,9 @@ from app.config import get_settings
 settings = get_settings()
 templates = Jinja2Templates(directory=str(settings.templates_dir))
 
+
+def is_htmx(request: Request):
+    return request.headers.get("hx-request") == 'true'
 
 # like django!
 def redirect(path, cookies: dict = {}, remove_session=False):
