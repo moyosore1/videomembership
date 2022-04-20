@@ -1,3 +1,7 @@
+import uuid
+from typing import Optional
+
+
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse
 
@@ -15,14 +19,14 @@ router = APIRouter(
 )
 
 
-
-def is_htmx(request:Request):
+def is_htmx(request: Request):
     return request.headers.get("hx-request") == 'true'
+
 
 @router.get("/create", response_class=HTMLResponse)
 @login_required
-def video_create_view(request: Request, is_htmx=Depends(is_htmx)):
-    
+def video_create_view(request: Request, is_htmx=Depends(is_htmx), playlist_id:Optional[uuid.UUID]=None):
+
     if is_htmx:
         return render(request, "videos/htmx/create.html")
     return render(request, 'videos/create.html', {})
@@ -42,18 +46,20 @@ def video_create_post(request: Request, is_htmx=Depends(is_htmx), title: str = F
     context = {
         "data": data,
         "errors": errors,
-        "url": url
+        "url": url,
+        "title": title
     }
-    
+
     if is_htmx:
         if len(errors) > 0:
             return render(request, "videos/htmx/create.html", context)
-        context = {"path":redirect_path, "title":data.get('title')}
+        context = {"path": redirect_path, "title": data.get('title')}
         return render(request, "videos/htmx/link.html", context)
-    
+
     if len(errors) > 0:
         return render(request, "videos/create.html", context, status_code=400)
     return redirect(redirect_path)
+
 
 @router.get("/", response_class=HTMLResponse)
 def video_list_view(request: Request):
@@ -74,8 +80,6 @@ def video_detail_view(request: Request, host_id: str):
     context = {
         "host_id": host_id,
         "start_time": start_time,
-        "video":video
+        "video": video
     }
     return render(request, 'videos/list.html', context)
-
-

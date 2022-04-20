@@ -44,3 +44,5 @@ class Playlist(Model):
     @property
     def path(self):
         return f"/playlists/{self.db_id}"
+
+    
