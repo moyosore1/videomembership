@@ -1,11 +1,11 @@
 import json
 import pathlib
 
-from fastapi import FastAPI, Form, Request, HTTPException
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from cassandra.cqlengine.management import sync_table
 from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.authentication import requires
+
 
 from . import config, db
 from .utils import valid_schema_data_or_error
@@ -18,7 +18,7 @@ from .users.backends import JWTCookieBackend
 from .video.models import Video
 from .video.routers import router as video_router
 from .watch.models import WatchEvent
-
+from .watch.routers import router as watch_router
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
@@ -27,6 +27,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 main_app = FastAPI()
 main_app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
 main_app.include_router(video_router)
+main_app.include_router(watch_router)
 DB_SESSION = None
 
 
@@ -108,9 +109,4 @@ def users_list():
     return list(queryset)
 
 
-@main_app.post("/watch-event")
-def watch_event_view(request: Request, data: dict):
-    if request.user.is_authenticated:
-        WatchEvent.objects.create(host_id=data.get("videoId"), user_id=request.user.username,
-                                  start_time=0, duration=500, end_time=data.get('currentTime'), complete=False)
-    return {"working": True}
+

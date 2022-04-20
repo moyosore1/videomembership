@@ -10,6 +10,7 @@
     if (youtubeVideoDiv){
         var videoId = youtubeVideoDiv.getAttribute("data-video-id")
         var defaultStartTime = 0;
+        var endpoint = "/api/events/watch"
         var initialStartTime = parseInt(youtubeVideoDiv.getAttribute("data-start-time")) || defaultStartTime;
         var player;
         var currentTime;
@@ -19,7 +20,7 @@
         var timeSinceLastSaved = 0;
         var timeIntervalForSave = 5000;
         function onYouTubeIframeAPIReady() {
-            // console.log("hello world");
+            
             player = new YT.Player('yt-video', {
                 height: '390',
                 width: '640',
@@ -45,7 +46,7 @@
     }
     function monitorCurrentPlayback() {
         currentTime = player.getCurrentTime()
-        console.log('currentTime', currentTime)
+        
         timeSinceLastSaved += monitorTimeInterval
         if (isPlaying) {
             monitorTimeOut = setTimeout(monitorCurrentPlayback, monitorTimeInterval) 
@@ -58,13 +59,13 @@
     function onPlayerStateChange(event) {
        
         if (event.data === YT.PlayerState.PLAYING) {
-            console.log("is playing")
+            
             isPlaying = true
             monitorCurrentPlayback()
         }
 
         else if (event.data === YT.PlayerState.PAUSED) {
-            console.log("is paused")
+            
             isPlaying = false
             clearTimeout(monitorTimeOut)
             monitorCurrentPlayback()
@@ -72,7 +73,7 @@
         }
 
         else if (event.data === YT.PlayerState.ENDED) {
-            console.log("is ended")
+            
             isPlaying = false
             clearTimeout(monitorTimeOut)
             monitorCurrentPlayback()
@@ -81,12 +82,18 @@
     }
 
     function storeWatchEvent(){
+        var duration = player.getDuration()
         var data = {
-            currentTime: currentTime,
-            videoId: videoId
+            path: window.location.pathname,
+            end_time: currentTime,
+            host_id: videoId,
+            start_time: initialStartTime,
+            duration: duration,
+            complete: (duration * .98) < currentTime
+            
         }
         timeSinceLastSaved = 0;
-        console.log('saving...', data)
+        
         var reqOptions = {
             method: "POST",
             headers:{
@@ -94,7 +101,7 @@
             },
             body: JSON.stringify(data)
         }
-        fetch("watch-event", reqOptions)
+        fetch(endpoint, reqOptions)
         .then(response => response.json())
         .then(data=>{
             
