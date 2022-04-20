@@ -39,16 +39,18 @@ def video_create_post(request: Request, is_htmx=Depends(is_htmx), title: str = F
 
     data, errors = utils.valid_schema_data_or_error(raw_data, VideoSchema)
     redirect_path = data.get('path') or "/videos/create"
+    context = {
+        "data": data,
+        "errors": errors,
+        "url": url
+    }
+    
     if is_htmx:
         if len(errors) > 0:
             return render(request, "videos/htmx/create.html", context)
         context = {"path":redirect_path, "title":data.get('title')}
         return render(request, "videos/htmx/link.html", context)
-    context = {
-        "data":data,
-        "errors":errors,
-        "url": url
-    }
+    
     if len(errors) > 0:
         return render(request, "videos/create.html", context, status_code=400)
     return redirect(redirect_path)
