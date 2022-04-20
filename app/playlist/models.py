@@ -40,3 +40,7 @@ class Playlist(Model):
             if video is not None:
                 videos.append(video)
         return videos
+
+    @property
+    def path(self):
+        return f"/playlists/{self.db_id}"

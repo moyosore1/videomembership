@@ -11,6 +11,8 @@ from . import config, db
 from .utils import valid_schema_data_or_error
 from .shortcuts import render, redirect
 from .handlers import *  # noqa
+
+from .playlist.routers import router as playlist_router
 from .users.models import User
 from .users.schemas import UserSignupSchema, UserSignInSchema
 from .users.decorators import login_required
@@ -28,6 +30,8 @@ main_app = FastAPI()
 main_app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
 main_app.include_router(video_router)
 main_app.include_router(watch_router)
+main_app.include_router(playlist_router)
+
 DB_SESSION = None
 
 

@@ -3,8 +3,8 @@
 {% block content %}
     {% for video in videos%}
     <li>
-        <a href="{{video.path}}">
-            {% if not video.title %} {{video.host_id}}</li>{% else %}{{video.title}}
+        <a href="{{playlist.path}}">
+            {% if not playlist.title %} {{playlist.db_id}}</li>{% else %}{{playlist.title}}
             {% endif %}
         </a>
     </li>

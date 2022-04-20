@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    
+    {% playlist.title %}
+
+    <div id="video-create-form">
+        <button hx-get="/videos/create" hx-trigger="click" hx-target="#video-create-form" hx-swap="beforeend">
+
+        </button>
+    </div>
+
+{% endblock content %}
