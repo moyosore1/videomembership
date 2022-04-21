@@ -137,21 +137,34 @@ def video_edit_get_hx_view(request: Request, host_id: str, is_htmx=Depends(is_ht
 
 @router.post("/hx-edit/{host_id}", response_class=HTMLResponse)
 @login_required
-def video_edit_post_hx_view(request: Request, host_id: str, is_htmx=Depends(is_htmx), title: str = Form(...),  url: str = Form(...)):
+def video_edit_post_hx_view(request: Request, host_id: str, is_htmx=Depends(is_htmx), title: str = Form(...),  url: str = Form(...), delete:Optional[bool]=Form(default=False)):
+    if not is_htmx:
+        raise HTTPException(status_code=400)
+    video = None
+    not_found = False
+    try:
+        video = get_object_or_404(Video, host_id=host_id)
+    except:
+        not_found = True
+    if not_found:
+        return HTMLResponse("Not found.")
+    if delete:
+        video.delete()
+        return HTMLResponse("Item deleted.")
+    
     raw_data = {
         "title": title,
         "url": url,
         "user_id": request.user.username
     }
 
-    video = get_object_or_404(Video, host_id=host_id)
     context = {
         "host_id": host_id,
         "video": video
     }
     data, errors = utils.valid_schema_data_or_error(raw_data, VideoEditSchema)
     if len(errors) > 0:
-        return render(request, "videos/edit.html", context, status_code=400)
+        return render(request, "videos/htmx/edit.html", context, status_code=400)
     video.title = data.get('title') or video.title
     video.update_video_url(url, save=True)
-    return render(request, "videos/edit.html", context)
+    return render(request, "videos/htmx/list-inline.html", context)

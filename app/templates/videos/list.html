@@ -3,13 +3,9 @@
 {% block content %}
     {% for video in videos%}
     <div style="margin:2rem;">
-        <li>
-            <a href="{{video.path}}">
-                {% if not video.title %} {{video.host_id}}</li>{% else %}{{video.title}}
-                {% endif %}
-            </a>
-            <button hx-get="/videos/edit/{{video.host_id}}">Edit</button>
-        </li>
+        {% with video=video %}
+            {% include 'videos/htmx/list-inline.html'%}
+        {% endwith %}
     </div>
     {% endfor %}
 {% endblock content %}
