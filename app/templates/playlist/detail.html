@@ -4,10 +4,25 @@
     
     {% playlist.title %}
 
-    <div id="video-create-form">
-        <button hx-get="/playlists/{{playlist.db_id}}/add" hx-trigger="click" hx-target="#video-create-form" hx-swap="beforeend">
-            Add Video Form
-        </button>
+    <div id="video-container">
+        {% for video in playlist.get_videos() %}
+            {% with path=video.path, title=video.title %}
+                <li id="video-item-{{loop.index}}">
+                    {% include 'videos/htmx/link.html'%}
+                    <button
+                        hx-post="/playlists/remove/{{playlist.db_id}}/{{video.host_id}}"
+                        hx-target="#video-item-{{loop.index}}"
+                        hx-vals="{"index":"{{loop.index - 1}}"}"
+                        >Remove</button>
+                </li>
+            {% endwith %}
+        {% endfor %}
     </div>
+
+   
+
+    <button hx-get="/playlists/{{playlist.db_id}}/add" hx-trigger="click" hx-target="#video-container" hx-swap="beforeend">
+            Add Video Form
+    </button>
 
 {% endblock content %}

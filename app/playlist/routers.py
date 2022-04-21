@@ -10,9 +10,7 @@ from app.shortcuts import (is_htmx, redirect, render,
                            get_object_or_404, is_htmx)
 from app.users.decorators import login_required
 from app import utils
-from app.video.schemas import VideoSchema
-
-from .schemas import PlaylistSchema
+from .schemas import PlaylistSchema, PlaylistVideoAddSchema
 from .models import Playlist
 
 router = APIRouter(
@@ -86,10 +84,11 @@ def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depe
     raw_data = {
         "title": title,
         "url": url,
-        "user_id": request.user.username
+        "user_id": request.user.username,
+        "playlist_id": db_id
     }
 
-    data, errors = utils.valid_schema_data_or_error(raw_data, VideoSchema)
+    data, errors = utils.valid_schema_data_or_error(raw_data, PlaylistVideoAddSchema)
     redirect_path = data.get('path') or f"/playlists/detail/{db_id}"
     context = {
         "data": data,
@@ -105,3 +104,18 @@ def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depe
         return render(request, "playlist/htmx/add.html", context)
     context = {"path": redirect_path, "title": data.get('title')}
     return render(request, "videos/htmx/link.html", context)
+
+
+@router.post("/remove/{db_id}/{host_id}", response_class=HTMLResponse)
+def playlist_remove_video_item_view(request: Request, db_id: uuid.UUID, host_id:str, index:Optional[int] = Form(default=None)):
+    try:
+        playlist = get_object_or_404(Playlist, db_id=db_id)
+    except:
+        return HTMLResponse("An error occured.")
+    if not request.user.is_authenticated:
+        return HTMLResponse("Not authenticated. Please login.")
+    
+    if isinstance(index, int):
+        host_ids = playlist.host_ids
+        
+    return HTMLResponse("Deleted.")
