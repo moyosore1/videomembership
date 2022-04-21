@@ -71,7 +71,7 @@ def playlist_detail_view(request: Request, db_id: uuid.UUID):
 @login_required
 def playlist_video_create_view(request: Request, db_id: uuid.UUID, is_htmx=Depends(is_htmx)):
     context = {
-        "db_id":db_id
+        "db_id": db_id
     }
     if not is_htmx:
         raise HTTPException(status_code=400)
@@ -88,14 +88,15 @@ def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depe
         "playlist_id": db_id
     }
 
-    data, errors = utils.valid_schema_data_or_error(raw_data, PlaylistVideoAddSchema)
+    data, errors = utils.valid_schema_data_or_error(
+        raw_data, PlaylistVideoAddSchema)
     redirect_path = data.get('path') or f"/playlists/detail/{db_id}"
     context = {
         "data": data,
         "errors": errors,
         "url": url,
         "title": title,
-        "db_id":db_id
+        "db_id": db_id
     }
 
     if not is_htmx:
@@ -107,15 +108,20 @@ def playlist_video_create_post(request: Request,  db_id: uuid.UUID, is_htmx=Depe
 
 
 @router.post("/remove/{db_id}/{host_id}", response_class=HTMLResponse)
-def playlist_remove_video_item_view(request: Request, db_id: uuid.UUID, host_id:str, index:Optional[int] = Form(default=None)):
+def playlist_remove_video_item_view(request: Request, db_id: uuid.UUID, host_id: str, is_htmx=Depends(is_htmx), index: Optional[int] = Form(default=None)):
+    
+    if not is_htmx:
+        raise HTTPException(status_code=400)
     try:
         playlist = get_object_or_404(Playlist, db_id=db_id)
     except:
         return HTMLResponse("An error occured.")
     if not request.user.is_authenticated:
         return HTMLResponse("Not authenticated. Please login.")
-    
+
     if isinstance(index, int):
         host_ids = playlist.host_ids
-        
+        host_ids.pop(index)
+        playlist.add_host_ids(host_ids=host_ids, replace_all=True)
+
     return HTMLResponse("Deleted.")

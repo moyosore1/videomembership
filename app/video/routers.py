@@ -79,3 +79,14 @@ def video_detail_view(request: Request, host_id: str):
         "video": video
     }
     return render(request, 'videos/list.html', context)
+
+
+@router.put("/edit/{host_id}", response_class=HTMLResponse)
+@login_required
+def video_edit_view(request: Request, host_id: str):
+    video = get_object_or_404(Video, host_id=host_id)
+    context = {
+        "host_id": host_id,
+        "video": video
+    }
+    return render(request, 'videos/edit.html', context)

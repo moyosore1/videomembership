@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    
+    {% if video.title %}
+        <h1>Edit {{video.title}}</h1>
+    {% endif %}
+
+    {% with video=video%}
+        {% include "videos/htmx/edit.html"%}
+    {% endwith%}
+    
+
+{% endblock content %}
