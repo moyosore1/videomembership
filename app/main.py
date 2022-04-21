@@ -1,5 +1,6 @@
-import json
 import pathlib
+from typing import Optional
+
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
@@ -58,12 +59,23 @@ def homepage(request: Request):
 @main_app.get("/login", response_class=HTMLResponse)
 # @requires(['anon'])
 def login_get_view(request: Request):
-    session_id = request.cookies.get("session_id") or None
-    return render(request, "auth/login.html", {"logged_in": session_id is not None})
+    
+    return render(request, "auth/login.html", {})
 
+
+@main_app.get("/logout", response_class=HTMLResponse)
+def logout_get_view(request: Request):
+    if not request.user.is_authenticated:
+        return redirect("/login")
+    return render(request, "auth/login.html", {})
+
+
+@main_app.post("/logout", response_class=HTMLResponse)
+def logout_post_view(request: Request):
+    return redirect("/login", remove_session=True)
 
 @main_app.post("/login", response_class=HTMLResponse)
-def login_post_view(request: Request, email: str = Form(...), password: str = Form(...)):
+def login_post_view(request: Request, email: str = Form(...), password: str = Form(...), next:Optional[str]="/"):
     # need python-multipart to handle form data.
 
     raw_data = {
@@ -77,7 +89,9 @@ def login_post_view(request: Request, email: str = Form(...), password: str = Fo
     }
     if len(errors) > 0:
         return render(request,  "auth/register.html", context, status_code=400)
-    return redirect("/", cookies=data)
+    if "http://127.0.0.1" not in next:
+        next = "/"
+    return redirect(next, cookies=data)
 
 
 @main_app.get("/signup", response_class=HTMLResponse)
