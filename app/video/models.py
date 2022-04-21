@@ -7,8 +7,6 @@ from cassandra.cqlengine.query import (DoesNotExist, MultipleObjectsReturned)
 from app.config import get_settings
 from app.users.models import User
 from app.users.exceptions import InvalidUserIdException
-from app.shortcuts import templates
-
 from .extractors import extract_video_id
 from .exceptions import InvalidURLException, VideoAlreadyAddedException
 
@@ -49,6 +47,16 @@ class Video(Model):
         except:
             raise Exception("Invalid request.")
         return obj, created
+
+    def update_video_url(self, url, save=True):
+        host_id = extract_video_id(url)
+        if not host_id:
+            return None
+        self.url = url
+        self.host_id = host_id
+        if save:
+            self.save()
+        return url
 
     @staticmethod
     def add_video(url, user_id=None, **kwargs):

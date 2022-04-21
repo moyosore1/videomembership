@@ -2,9 +2,9 @@
 
 {% block content %}
     
-    {% if video.title %}
-        <h1>Edit {{video.title}}</h1>
-    {% endif %}
+    
+        <h1>{% if video.title %}Edit {{video.title}}{% else %}{{video.host_id}}{% endif %}</h1>
+    
 
     {% with video=video%}
         {% include "videos/htmx/edit.html"%}

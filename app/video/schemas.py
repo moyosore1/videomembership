@@ -54,3 +54,15 @@ class VideoSchema(BaseModel):
             raise ValueError("There is a problem, please try again")
         
         return video.as_data()
+
+
+class VideoEditSchema(BaseModel):
+    url: str
+    title: str
+
+    @validator("url")
+    def validate_url(cls, v, values, **kwargs):
+        video_id = extract_video_id(v)
+        if video_id is None:
+            raise ValueError("Not a valid URL")
+        return v

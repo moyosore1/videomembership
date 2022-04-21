@@ -7,7 +7,7 @@
         {% endif %} 
     </div>
     
-    <form method="POST" action="/videos/create" hx-post="/videos/create">
+    <form method="POST" action="/videos/edit/{{video.host_id}}" hx-post="/videos/create">
 
         <div>
             <label for="title">Title</label>
