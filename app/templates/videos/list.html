@@ -2,11 +2,14 @@
 
 {% block content %}
     {% for video in videos%}
-    <li>
-        <a href="{{video.path}}">
-            {% if not video.title %} {{video.host_id}}</li>{% else %}{{video.title}}
-            {% endif %}
-        </a>
-    </li>
+    <div style="margin:2rem;">
+        <li>
+            <a href="{{video.path}}">
+                {% if not video.title %} {{video.host_id}}</li>{% else %}{{video.title}}
+                {% endif %}
+            </a>
+            <button hx-get="/videos/edit/{{video.host_id}}">Edit</button>
+        </li>
+    </div>
     {% endfor %}
 {% endblock content %}
