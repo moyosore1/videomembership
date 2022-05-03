@@ -10,7 +10,6 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 from . import config, db
 from .utils import valid_schema_data_or_error
-from .shortcuts import render, redirect
 from .handlers import *  # noqa
 
 from .playlist.routers import router as playlist_router
